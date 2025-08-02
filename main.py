@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 chat_model = genai.GenerativeModel('gemini-2.5-flash')
 
-app = FastAPI(title="PDF Bot API", root_path="/api/v1")
+
 
 # Authentication
 security = HTTPBearer()
@@ -533,13 +533,41 @@ async def health_check():
         "embedding_cache": len(embedding_cache)
     }}
 
-@app.on_event("shutdown")
-async def shutdown_event():
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    yield
+    # Shutdown
     await http_client.aclose()
     cpu_executor.shutdown(wait=True)
     io_executor.shutdown(wait=True)
     process_executor.shutdown(wait=True)
     logger.info("All thread pools and HTTP client closed")
+
+app = FastAPI(title="PDF Bot API", root_path="/api/v1", lifespan=lifespan)
+
+@app.get("/")
+async def root():
+    """Default root endpoint - shows API is working"""
+    return {
+        "message": "PDF Bot API is working! 🚀",
+        "status": "active",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/health",
+            "main_api": "/hackrx/run"
+        },
+        "description": "AI-powered PDF document analysis and question answering service",
+        "features": [
+            "PDF text extraction and chunking",
+            "Vector-based similarity search using FAISS",
+            "AI-powered question answering with Google Gemini",
+            "High-performance concurrent processing",
+            "Authentication support"
+        ]
+    }
 
 if __name__ == "__main__":
     import uvicorn

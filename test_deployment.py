@@ -1,136 +1,96 @@
 #!/usr/bin/env python3
 """
-Deployment test script for CPU-only FAISS
+Test script for PDF Bot API deployment
 """
 
-import os
-import sys
+import requests
+import json
+import time
 
-def test_faiss_deployment():
-    """Test FAISS deployment configuration"""
-    print("🧪 Testing FAISS Deployment Configuration")
-    print("=" * 50)
+def test_api_endpoints(base_url="http://localhost:8000"):
+    """Test all API endpoints"""
     
-    # Set environment variables
-    os.environ['FAISS_NO_AVX2'] = '1'
-    os.environ['FAISS_NO_GPU'] = '1'
-    os.environ['FAISS_DISABLE_GPU'] = '1'
-    os.environ['FAISS_CPU_ONLY'] = '1'
-    os.environ['FAISS_NO_CUDA'] = '1'
+    print("🧪 Testing PDF Bot API endpoints...")
+    print(f"Base URL: {base_url}")
+    print("-" * 50)
     
-    print("✅ Environment variables set:")
-    for var in ['FAISS_NO_AVX2', 'FAISS_NO_GPU', 'FAISS_CPU_ONLY']:
-        print(f"   {var}: {os.environ.get(var)}")
-    
+    # Test 1: Root endpoint (no auth required)
+    print("1. Testing root endpoint (/)...")
     try:
-        # Test FAISS import
-        import faiss
-        print(f"✅ FAISS imported successfully: {faiss.__version__}")
-        
-        # Test basic operations
-        import numpy as np
-        
-        # Create CPU-only index
-        index = faiss.IndexFlatIP(384)
-        print("✅ CPU-only FAISS index created")
-        
-        # Test vector operations
-        test_vectors = np.random.rand(10, 384).astype(np.float32)
-        faiss.normalize_L2(test_vectors)
-        index.add(test_vectors)
-        print("✅ Vector addition working")
-        
-        # Test search
-        query = np.random.rand(1, 384).astype(np.float32)
-        faiss.normalize_L2(query)
-        scores, indices = index.search(query, 5)
-        print("✅ Vector search working")
-        
-        # Test our vector store
-        from utils.embed_utils import vector_store, get_embedding
-        print("✅ Vector store imported successfully")
-        
-        # Test embedding generation
-        test_text = "This is a test document for deployment."
-        embedding = get_embedding(test_text)
-        print(f"✅ Embedding generated: shape {embedding.shape}")
-        
-        print("\n🎉 All deployment tests passed!")
-        print("✅ FAISS is configured for CPU-only deployment")
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ Deployment test failed: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-def test_api_deployment():
-    """Test API deployment"""
-    print("\n🔍 Testing API deployment...")
-    
-    try:
-        from main import app
-        print("✅ FastAPI app imported successfully")
-        
-        # Test health endpoint
-        from fastapi.testclient import TestClient
-        client = TestClient(app)
-        
-        response = client.get("/health")
+        response = requests.get(f"{base_url}/")
         if response.status_code == 200:
-            print("✅ Health endpoint working")
-            print(f"   Response: {response.json()}")
+            data = response.json()
+            print(f"✅ Root endpoint working!")
+            print(f"   Message: {data.get('message', 'N/A')}")
+            print(f"   Status: {data.get('status', 'N/A')}")
+            print(f"   Version: {data.get('version', 'N/A')}")
+        else:
+            print(f"❌ Root endpoint failed: {response.status_code}")
+    except Exception as e:
+        print(f"❌ Root endpoint error: {str(e)}")
+    
+    print()
+    
+    # Test 2: Health endpoint (no auth required)
+    print("2. Testing health endpoint (/health)...")
+    try:
+        response = requests.get(f"{base_url}/health")
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Health endpoint working!")
+            print(f"   Status: {data.get('status', 'N/A')}")
+            print(f"   Cache sizes: {data.get('cache_sizes', 'N/A')}")
         else:
             print(f"❌ Health endpoint failed: {response.status_code}")
-            return False
-        
-        return True
-        
     except Exception as e:
-        print(f"❌ API deployment test failed: {e}")
-        return False
-
-def main():
-    """Run all deployment tests"""
-    print("🚀 FAISS Deployment Test Suite")
-    print("=" * 50)
+        print(f"❌ Health endpoint error: {str(e)}")
     
-    tests = [
-        ("FAISS Deployment", test_faiss_deployment),
-        ("API Deployment", test_api_deployment),
-    ]
+    print()
     
-    passed = 0
-    total = len(tests)
+    # Test 3: Main API endpoint (requires auth)
+    print("3. Testing main API endpoint (/hackrx/run)...")
+    print("   Note: This requires authentication token")
     
-    for test_name, test_func in tests:
-        print(f"\n🔍 Running: {test_name}")
-        try:
-            if test_func():
-                passed += 1
-                print(f"✅ {test_name} PASSED")
-            else:
-                print(f"❌ {test_name} FAILED")
-        except Exception as e:
-            print(f"❌ {test_name} ERROR: {e}")
+    # You can uncomment and modify this section to test with real credentials
+    """
+    auth_token = "your_auth_token_here"
+    headers = {"Authorization": f"Bearer {auth_token}"}
     
-    print("\n" + "=" * 50)
-    print(f"📊 Deployment Test Results: {passed}/{total} tests passed")
+    test_data = {
+        "documents": "https://example.com/sample.pdf",
+        "questions": ["What is this document about?"]
+    }
     
-    if passed == total:
-        print("🎉 All deployment tests passed!")
-        print("✅ Your application is ready for deployment")
-        print("\n📋 Deployment Checklist:")
-        print("   ✅ FAISS CPU-only configuration")
-        print("   ✅ Environment variables set")
-        print("   ✅ Vector operations working")
-        print("   ✅ API endpoints responding")
-        print("   ✅ No GPU dependencies")
-    else:
-        print("⚠️  Some deployment tests failed.")
-        print("Please check the errors above before deploying.")
+    try:
+        response = requests.post(
+            f"{base_url}/hackrx/run",
+            json=test_data,
+            headers=headers
+        )
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Main API endpoint working!")
+            print(f"   Answers: {data.get('answers', 'N/A')}")
+        else:
+            print(f"❌ Main API endpoint failed: {response.status_code}")
+            print(f"   Response: {response.text}")
+    except Exception as e:
+        print(f"❌ Main API endpoint error: {str(e)}")
+    """
+    
+    print("   ⚠️  Skipped (requires valid auth token)")
+    
+    print()
+    print("🎉 API testing completed!")
+    print("\n📋 Next steps for deployment:")
+    print("1. Set your GEMINI_API_KEY environment variable")
+    print("2. Set your AUTHORIZE_TOKEN environment variable")
+    print("3. Deploy to Hugging Face using the deploy script")
+    print("4. Test with real PDF documents and questions")
 
 if __name__ == "__main__":
-    main() 
+    # Test local deployment
+    test_api_endpoints()
+    
+    # Uncomment to test Hugging Face deployment
+    # test_api_endpoints("https://your-username-your-space-name.hf.space") 

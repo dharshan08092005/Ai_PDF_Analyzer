@@ -100,7 +100,7 @@ def start_server():
         uvicorn.run(
             app,
             host="0.0.0.0",
-            port=8000,
+            port=7860,
             workers=1,  # Single worker for better caching
             log_level="info",
             access_log=True,

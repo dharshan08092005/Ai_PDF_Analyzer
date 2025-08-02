@@ -27,7 +27,7 @@ A FastAPI-based PDF document analysis service that uses Gemini AI and FAISS for 
    docker build -t pdf-bot-api .
    
    # Run the container
-   docker run -p 8000:8000 \
+   docker run -p 7860:7860 \
      -e GEMINI_API_KEY=your_gemini_api_key \
      -e AUTHORIZE_TOKEN=your_auth_token \
      pdf-bot-api
@@ -59,7 +59,7 @@ A FastAPI-based PDF document analysis service that uses Gemini AI and FAISS for 
 
 - `GEMINI_API_KEY`: Google Gemini API key (required)
 - `AUTHORIZE_TOKEN`: Authentication token for API access (required)
-- `PORT`: Port to run the server on (default: 8000)
+- `PORT`: Port to run the server on (default: 7860)
 
 ## API Usage
 

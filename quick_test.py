@@ -8,7 +8,7 @@ import httpx
 import os
 
 # Test configuration
-API_BASE_URL = "http://localhost:8000/api/v1"
+API_BASE_URL = "http://localhost:7860/api/v1"
 AUTH_TOKEN = os.getenv("AUTHORIZE_TOKEN", "your-auth-token")
 
 # Simple test document
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # Check if server is running
     try:
         import requests
-        response = requests.get("http://localhost:8000/api/v1/health", timeout=5)
+        response = requests.get("http://localhost:7860/api/v1/health", timeout=5)
         if response.status_code == 200:
             print("✅ Server is running")
         else:

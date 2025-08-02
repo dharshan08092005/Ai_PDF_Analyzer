@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: pdf-bot-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AUTHORIZE_TOKEN
+        sync: false
+      - key: FAISS_NO_AVX2
+        value: "1"
+      - key: FAISS_NO_GPU
+        value: "1"
+      - key: FAISS_CPU_ONLY
+        value: "1"
+    # Optional: Add health check
+    healthCheckPath: /api/v1/health 

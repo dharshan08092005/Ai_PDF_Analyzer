@@ -574,7 +574,7 @@ if __name__ == "__main__":
     import os
     
     # Get port from environment (Render sets PORT env var)
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 7860))
     
     uvicorn.run(
         app, 

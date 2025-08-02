@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-def test_api_endpoints(base_url="http://localhost:7860"):
+def test_api_endpoints(base_url="http://localhost:8000"):
     """Test all API endpoints"""
     
     print("🧪 Testing PDF Bot API endpoints...")

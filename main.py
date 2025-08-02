@@ -30,7 +30,20 @@ logger = logging.getLogger(__name__)
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 chat_model = genai.GenerativeModel('gemini-2.5-flash')
 
+from contextlib import asynccontextmanager
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    yield
+    # Shutdown
+    await http_client.aclose()
+    cpu_executor.shutdown(wait=True)
+    io_executor.shutdown(wait=True)
+    process_executor.shutdown(wait=True)
+    logger.info("All thread pools and HTTP client closed")
+
+app = FastAPI(title="PDF Bot API", root_path="/api/v1", lifespan=lifespan)
 
 # Authentication
 security = HTTPBearer()
@@ -532,21 +545,6 @@ async def health_check():
         "qa_cache": len(qa_cache),
         "embedding_cache": len(embedding_cache)
     }}
-
-from contextlib import asynccontextmanager
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    yield
-    # Shutdown
-    await http_client.aclose()
-    cpu_executor.shutdown(wait=True)
-    io_executor.shutdown(wait=True)
-    process_executor.shutdown(wait=True)
-    logger.info("All thread pools and HTTP client closed")
-
-app = FastAPI(title="PDF Bot API", root_path="/api/v1", lifespan=lifespan)
 
 @app.get("/")
 async def root():
